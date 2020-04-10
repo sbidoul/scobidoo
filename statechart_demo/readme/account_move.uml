@@ -1,0 +1,32 @@
+@startuml
+title account.move
+state "root" as root {
+  [*] --> draft
+  state "cancelled" as cancelled {
+    cancelled --> draft : button_draft / self.button_draft.origin(self)
+  }
+  state "posted" as posted {
+  }
+  state "approved" as approved {
+    approved --> posted : post [self.env.user.has_group('account.group_account_invoice')] / self.post.origin(self)
+    approved --> draft : reject
+    approved --> cancelled : button_cancel / self.button_cancel.origin(self)
+  }
+  state "cfo check" as cfocheck {
+    cfocheck --> approved : validate
+    cfocheck --> draft : reject
+    cfocheck --> cancelled : button_cancel / self.button_cancel.origin(self)
+  }
+  state "manager check" as managercheck {
+    managercheck --> approved : validate [self.amount_total < 1000]
+    managercheck --> cfocheck : validate [self.amount_total >= 1000]
+    managercheck --> draft : reject
+    managercheck --> cancelled : button_cancel / self.button_cancel.origin(self)
+  }
+  state "draft" as draft {
+    draft --> managercheck : submit [( self.type == 'in_invoice' \n and self.invoice_line_ids)]
+    draft --> posted : post [( self.type != 'in_invoice' \n and self.env.user.has_group('account.group_account_invoice'))] / self.post.origin(self)
+    draft --> cancelled : button_cancel / self.button_cancel.origin(self)
+  }
+}
+@enduml

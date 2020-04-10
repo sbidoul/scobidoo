@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_move_form" model="ir.ui.view">
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <!-- New workflow buttons. -->
+                <button name="action_post" position="before">
+                    <button
+                        name="reject"
+                        type="object"
+                        string="Reject"
+                        attrs="{'invisible': [('sc_reject_allowed', '=', False)]}"
+                    />
+                    <button
+                        name="submit"
+                        type="object"
+                        string="Submit"
+                        attrs="{'invisible': [('sc_submit_allowed', '=', False)]}"
+                    />
+                    <button
+                        name="validate"
+                        type="object"
+                        string="Validate"
+                        attrs="{'invisible': [('sc_validate_allowed', '=', False)]}"
+                    />
+                </button>
+                <!-- Let the statechart drive visibility of these existing buttons. -->
+                <button name="action_post" position="attributes">
+                    <attribute name="attrs">
+                        {'invisible': [('sc_post_allowed', '=', False)]}
+                    </attribute>
+                    <attribute name="states"/>
+                    <attribute name="groups"/>
+                </button>
+                <button name="button_draft" position="attributes">
+                    <attribute name="attrs">
+                        {'invisible': [('sc_button_draft_allowed', '=', False)]}
+                    </attribute>
+                    <attribute name="states"/>
+                    <attribute name="groups"/>
+                </button>
+                <button name="button_cancel" position="attributes">
+                    <attribute name="attrs">
+                        {'invisible': [('sc_button_cancel_allowed', '=', False)]}
+                    </attribute>
+                    <attribute name="states"/>
+                    <attribute name="groups"/>
+                </button>
+                <!-- Visualize statechart progress. -->
+                <field name="state" position="before">
+                    <field name="sc_state" readonly="1"/>
+                </field>
+                <!-- 
+                    W need the sc_*_allowed flags in the form to use them in
+                    buttons visibility rules.
+                -->
+                <form position="inside">
+                    <field name="sc_reject_allowed" invisible="1"/>
+                    <field name="sc_submit_allowed" invisible="1"/>
+                    <field name="sc_validate_allowed" invisible="1"/>
+                    <field name="sc_post_allowed" invisible="1"/>
+                    <field name="sc_button_draft_allowed" invisible="1"/>
+                    <field name="sc_button_cancel_allowed" invisible="1"/>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

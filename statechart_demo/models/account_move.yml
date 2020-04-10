@@ -1,0 +1,65 @@
+statechart:
+  name: account.move
+  root state:
+    name: root
+    initial: draft
+    states:
+      - name: draft
+        transitions:
+          - target: manager check
+            event: submit
+            guard: |-
+              (
+                self.type == 'in_invoice'
+                and self.invoice_line_ids
+              )
+          - target: posted
+            event: post
+            guard: |-
+              (
+                self.type != 'in_invoice' 
+                and self.env.user.has_group('account.group_account_invoice')
+              )
+            action: self.post.origin(self)
+          - target: cancelled
+            event: button_cancel
+            action: self.button_cancel.origin(self)
+      - name: manager check
+        transitions:
+          - target: approved
+            event: validate
+            guard: self.amount_total < 1000
+          - target: cfo check
+            event: validate
+            guard: self.amount_total >= 1000
+          - target: draft
+            event: reject
+          - target: cancelled
+            event: button_cancel
+            action: self.button_cancel.origin(self)
+      - name: cfo check
+        transitions:
+          - target: approved
+            event: validate
+          - target: draft
+            event: reject
+          - target: cancelled
+            event: button_cancel
+            action: self.button_cancel.origin(self)
+      - name: approved
+        transitions:
+          - target: posted
+            event: post
+            guard: self.env.user.has_group('account.group_account_invoice')
+            action: self.post.origin(self)
+          - target: draft
+            event: reject
+          - target: cancelled
+            event: button_cancel
+            action: self.button_cancel.origin(self)
+      - name: posted
+      - name: cancelled
+        transitions:
+          - target: draft
+            event: button_draft
+            action: self.button_draft.origin(self)
